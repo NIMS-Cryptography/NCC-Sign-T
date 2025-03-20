@@ -848,7 +848,18 @@ static unsigned int rej_uniform(int32_t *a,
 {
   unsigned int ctr, pos;
   uint32_t t;
-
+  
+#if NIMS_TRI_NTT_MODE == 5
+	ctr = pos = 0;
+	while (ctr < len && pos + 3 <= buflen) {
+		t = buf[pos++];
+		t |= (uint32_t)buf[pos++] << 8;
+		t |= (uint32_t)buf[pos++] << 16;
+		t &= 0x7FFFFF;	// Q -> 23-bit
+		if (t < Q && t != 0)
+			a[ctr++] = t;
+	}
+#else
   ctr = pos = 0;
   while (ctr < len && pos + 3 <= buflen)
   {
@@ -860,6 +871,7 @@ static unsigned int rej_uniform(int32_t *a,
     if (t < Q)
       a[ctr++] = t;
   }
+#endif
 
   return ctr;
 }
