@@ -856,7 +856,7 @@ static unsigned int rej_uniform(int32_t *a,
 		t |= (uint32_t)buf[pos++] << 8;
 		t |= (uint32_t)buf[pos++] << 16;
 		t &= 0x7FFFFF;	// Q -> 23-bit
-		if (t < Q && t != 0)
+		if (t < Q)
 			a[ctr++] = t;
 	}
 #else

@@ -14,42 +14,34 @@ int crypto_sign_keypair(uint8_t *pk, uint8_t *sk) {
 	uint8_t seedbuf[3 * SEEDBYTES];
 	uint8_t tr[SEEDBYTES];
 	const uint8_t *xi_1, *xi_2, *key;
+	unsigned int i;
 
 	poly mat;
 	poly s1, s1hat, s2, t1, t0;
 
-	//volatile unsigned int *DWT_CYCCNT   = (volatile unsigned int *)0xE0001004;
-	//int before, after, consumed_ntt = 0, consumed_intt = 0, consumed_basemul = 0;
 
+rejzeta:
 	randombytes(zeta, SEEDBYTES);
+	poly_uniform(&mat, zeta, 0);
+	for(i = 0 ; i < N ; i++)
+	{
+		if(mat.coeffs[i] == 0)
+		{
+			goto rejzeta;
+		}
+	}
 	randombytes(seedbuf, SEEDBYTES);
 	shake256(seedbuf, 3 * SEEDBYTES, seedbuf, SEEDBYTES);
 	xi_1 = seedbuf;
 	xi_2 = seedbuf + SEEDBYTES;
 	key = seedbuf + 2 * SEEDBYTES;
 
-	poly_uniform(&mat, zeta, 0);
 	poly_uniform_eta(&s1, xi_1, 0);
 	poly_uniform_eta(&s2, xi_2, 0);
 
-
-	//before = *DWT_CYCCNT;
 	ntt(s1hat.coeffs, s1.coeffs);
-	//after = *DWT_CYCCNT;
-	//consumed_ntt = (after - before - 2);
-	//printf("ntt : %d\r\n", consumed_ntt);
-
-	//before = *DWT_CYCCNT;
 	poly_base_mul(&t1, &s1hat, &mat);
-	/*after = *DWT_CYCCNT;
-	consumed_basemul = (after - before - 2);
-	printf("basemul : %d\r\n", consumed_basemul);*/
-
-	//before = *DWT_CYCCNT;
 	invntt_tomont(t1.coeffs, t1.coeffs);
-	/*after = *DWT_CYCCNT;
-	consumed_intt = (after - before - 2);
-	printf("intt : %d\r\n", consumed_intt);*/
 
 	poly_caddq(&t1);
 

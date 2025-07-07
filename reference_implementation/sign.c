@@ -19,11 +19,21 @@ int crypto_sign_keypair(uint8_t *pk, uint8_t *sk)
 	uint8_t seedbuf[3 * SEEDBYTES];
 	uint8_t tr[SEEDBYTES];
 	const uint8_t *xi_1, *xi_2, *key;
+	unsigned int i;
 
 	poly mat;
 	poly s1, s1hat, s2, t1, t0;
 
+rejzeta:
 	randombytes(zeta, SEEDBYTES);
+	poly_uniform(&mat, zeta, 0);
+	for(i = 0 ; i < N ; i++)
+	{
+		if(mat.coeffs[i] == 0)
+		{
+			goto rejzeta;
+		}
+	}
 	randombytes(seedbuf, SEEDBYTES);
 	shake256(seedbuf, 3 * SEEDBYTES, seedbuf, SEEDBYTES);
 	xi_1 = seedbuf;
